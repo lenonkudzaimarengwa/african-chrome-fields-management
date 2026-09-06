@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: african_chrome_db
+    environment:
+      POSTGRES_DB: african_chrome_db
+      POSTGRES_USER: chrome_user
+      POSTGRES_PASSWORD: chrome_password
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist database data even after container stops
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chrome_user -d african_chrome_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chrome_network
+
+  # pgAdmin - Database Management UI (Optional but useful)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: african_chrome_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@africanchrome.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - chrome_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  chrome_network:
+    driver: bridge
